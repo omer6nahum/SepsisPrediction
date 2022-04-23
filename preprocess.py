@@ -66,7 +66,8 @@ def transform_data_3D(input_dirpath, scaler, scaler_demo, has_labels):
                                                                    .fillna(0)
         df['ICULOS'] = df['ICULOS'].interpolate()
         if np.isnan(df['ICULOS'].values).sum() > 0:
-            df['ICULOS'] = range(1, df.shape[0] + 1)
+            print('NaN in ICULOS after interpolate')
+            df['ICULOS'] = np.linspace(0, 1, df.shape[0]) - 0.5
 
         df = df.drop(columns=['Unit2'])
         assert np.isnan(df.values).sum() == 0, (np.isnan(df.values).sum(), df.shape)
@@ -81,6 +82,28 @@ def transform_data_3D(input_dirpath, scaler, scaler_demo, has_labels):
         return columns, X_3D
 
 
+def transform_3D_to_2D(columns, columns_to_ignore, X_3D, functions=(np.mean,)):
+    X_2D = []
+    new_columns = []
+    for j, x in enumerate(X_3D):
+        x_new = []
+        for f in functions:
+            for i, col in enumerate(columns):
+                if col in columns_to_ignore:
+                    continue
+                x_new.append(f(x[:, i]))
+                if j == 0:
+                    new_columns.append(f'{f.__name__}_{col}')
+        for i, col in enumerate(columns):
+            if col in columns_to_ignore:
+                x_new.append(x[:, i].mean())
+                if j == 0:
+                    new_columns.append(f'mean_{col}')
+        X_2D.append(np.array(x_new))
+
+    return new_columns, np.array(X_2D)
+
+
 if __name__ == '__main__':
     with open('pickles/scaler', 'rb') as f:
         scaler = pickle.load(f)
@@ -91,3 +114,4 @@ if __name__ == '__main__':
     transform_data_3D_save('data/train', 'pickles/train', scaler, scaler_demo, has_labels=True)
     print('Transforming test ...')
     transform_data_3D_save('data/test', 'pickles/test', scaler, scaler_demo, has_labels=True)
+    # pass
