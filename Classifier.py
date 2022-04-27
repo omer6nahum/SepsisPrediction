@@ -1,5 +1,7 @@
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from sklearn.svm import SVC
 import pickle
 
 
@@ -28,10 +30,21 @@ class LogReg(Classifier2D):
         self.model = LogisticRegression(**kwargs)
 
 
+class SVM(Classifier2D):
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.model = SVC(**kwargs)
+
+
 class RandomForest(Classifier2D):
     def __init__(self, **kwargs):
         super().__init__()
         self.model = RandomForestClassifier(**kwargs)
 
 
-# TODO: xgboost (with GPU*)
+class XGB(Classifier2D):
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.model = XGBClassifier(**kwargs)
+
+

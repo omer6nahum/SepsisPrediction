@@ -1,10 +1,15 @@
 import numpy as np
 import pickle
-from Classifier import LogReg, RandomForest
-from statistics import nunique, max_abs, min_abs, quantile25, quantile75, IQR, value_range
-from preprocess import transform_3D_to_2D
-from sklearn.metrics import accuracy_score, f1_score
+import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, roc_auc_score
+from Classifier import LogReg, RandomForest, XGB, SVM
+from statistics import nunique, max_abs, min_abs
+from preprocess import transform_3D_to_2D
+
+
+pd.set_option('display.max_columns', 1000)
+pd.set_option("display.precision", 4)
 
 
 def load_data(dirpath):
@@ -32,7 +37,17 @@ def plot_lr_weights(columns, weights, k=20):
     plt.show()
 
 
-def main(method):
+def evaluate(y_true, y_pred, dataset_name):
+    return {
+        f'{dataset_name}_accuracy': [accuracy_score(y_true, y_pred)],
+        f'{dataset_name}_f1': [f1_score(y_true, y_pred)],
+        f'{dataset_name}_recall': [recall_score(y_true, y_pred)],
+        f'{dataset_name}_precision': [precision_score(y_true, y_pred)],
+        f'{dataset_name}_auc': [roc_auc_score(y_true, y_pred)]
+            }
+
+
+def main():
     org_columns, X_3D_train, y_train = load_data(dirpath='pickles/train')
     _, X_3D_test, y_test = load_data(dirpath='pickles/test')
 
@@ -42,36 +57,37 @@ def main(method):
     _, X_2D_train = transform_3D_to_2D(org_columns, columns_to_ignore, X_3D_train, functions)
     columns, X_2D_test = transform_3D_to_2D(org_columns, columns_to_ignore, X_3D_test, functions)
 
-    print([f.__name__ for f in functions])
-    print('Train:')
-    print(X_2D_train.shape)
-    print(y_train.shape)
-    print('Test:')
-    print(X_2D_test.shape)
-    print(y_test.shape)
+    models = {'log_reg': LogReg(class_weight='balanced', max_iter=1000),
+              'svm': SVM(kernel='poly', C=100, class_weight='balanced'),
+              'random_forest': RandomForest(class_weight='balanced_subsample', n_estimators=1000, criterion='entropy',
+                                            max_depth=7, max_features=15, max_samples=None),
+              'xgb': XGB(n_estimators=1000, objective='binary:logistic', colsample_bynode=10 / X_2D_train.shape[1],
+                         max_depth=7, reg_lambda=1000.0, sampling_method='uniform', random_state=5)
+              }
 
-    if method == 'log_reg':
-        model = LogReg(class_weight='balanced', max_iter=1000)
-    elif method == 'random_forest':
-        # TODO: check other statistic functions
-        params = dict(class_weight='balanced_subsample', n_estimators=1000, criterion='entropy',
-                      max_depth=7, max_features=15, max_samples=None)
-        model = RandomForest(**params)
-    model.fit(X_2D_train, y_train)
+    metrics = ['accuracy', 'f1', 'recall', 'precision', 'auc']
+    columns_names = ['model_name'] + [f'{dataset}_{metric}' for dataset in ['train', 'test'] for metric in metrics]
+    results = pd.DataFrame(columns=columns_names)
 
-    y_pred_train = model.predict(X_2D_train)
-    print(f'Accuracy Train = {accuracy_score(y_train, y_pred_train)}')
-    print(f'F1 Score Train = {f1_score(y_train, y_pred_train)}')
-    y_pred_test = model.predict(X_2D_test)
-    print(f'Accuracy Test = {accuracy_score(y_test, y_pred_test)}')
-    print(f'F1 Score Test = {f1_score(y_test, y_pred_test)}')
+    for model_name, model in models.items():
+        model.fit(X_2D_train, y_train)
+        y_pred_train = model.predict(X_2D_train)
+        train_results = evaluate(y_train, y_pred_train, 'train')
+        y_pred_test = model.predict(X_2D_test)
+        test_results = evaluate(y_test, y_pred_test, 'test')
+        model_row = {'model_name': [model_name]}
+        model_row.update(train_results)
+        model_row.update(test_results)
+        results = pd.concat([results, pd.DataFrame(model_row)])
 
-    model.save(path=f'models/{method}.model')
-    with open(f'models/{method}_columns', 'wb') as f:
-        pickle.dump(columns, f)
-    # plot_lr_weights(np.array(columns), model.get_weights())
+        model.save(path=f'models/{model_name}.model')
+        with open(f'models/{model_name}_columns', 'wb') as f:
+            pickle.dump(columns, f)
+
+    print(results)
+    with open(f'models/results.pkl', 'wb') as f:
+        pickle.dump(results, f)
 
 
 if __name__ == '__main__':
-    # methods = ['log_reg', 'random_forest', ...]
-    main(method='random_forest')
+    main()

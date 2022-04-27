@@ -66,7 +66,6 @@ def transform_data_3D(input_dirpath, scaler, scaler_demo, has_labels):
                                                                    .fillna(0)
         df['ICULOS'] = df['ICULOS'].interpolate()
         if np.isnan(df['ICULOS'].values).sum() > 0:
-            print('NaN in ICULOS after interpolate')
             df['ICULOS'] = np.linspace(0, 1, df.shape[0]) - 0.5
 
         df = df.drop(columns=['Unit2'])
