@@ -7,7 +7,6 @@ import pickle
 
 class Classifier2D:
     def __init__(self):
-        # TODO: make abstract property
         self.model = None
 
     def fit(self, X, y):
