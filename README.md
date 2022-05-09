@@ -11,3 +11,14 @@ Then, we decide on imputation policy for different features based on the EDA, an
 We then decide on four algorithms to optimize and evaluate for the prediction task: logistic regression, kernel SVM, random forest and XG-boost. We have trained and optimized hyper parameters on the given train set and evaluated on the given test set. Our main result was obtained by XG-boost, having ~72% F1 on the test set. We also used feature importance techniques to better understand decisions made by learned models, which will be visualized in this report as well.
 
 Full project report is available [here](https://github.com/omer6nahum/SepsisPrediction/blob/main/Report.pdf).
+
+## Getting Started
+
+```
+git clone https://github.com/omer6nahum/SepsisPrediction.git
+cd SepsisPrediction
+conda env create -f environment.yml
+python predict.py directory_name
+```
+
+Where `directory_name` should contain parient psv files.
