@@ -19,9 +19,8 @@ def transform_data_3D_save(input_dirpath, output_dirpath, scaler, scaler_demo, h
 
 
 def transform_data_3D(input_dirpath, scaler, scaler_demo, has_labels):
-    filepath = 'data/train/patient_0.psv'
-    data = pd.read_csv(filepath, delimiter='|')
-    columns = list(data.columns)
+    with open('pickles/column_names.pkl', 'rb') as f:
+        columns = pickle.load(f)
     vital_signs_columns = columns[:8]
     lab_values_columns = columns[8:34]
     demographic_columns = columns[34:40]

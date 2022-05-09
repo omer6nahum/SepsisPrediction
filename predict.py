@@ -11,7 +11,7 @@ def write_results(y_pred, input_dirpath, output_path):
     # filename is in a format: "patient_id.psv"
     ids = [filename.split('_')[1].split('.')[0] for filename in os.listdir(input_dirpath)]
     result_df = pd.DataFrame({'Id': ids, 'SepsisLabel': y_pred})
-    result_df.to_csv(output_path)
+    result_df.to_csv(output_path, index=False)
 
 
 def main(argv):
