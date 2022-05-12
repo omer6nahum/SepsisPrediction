@@ -18,7 +18,7 @@ Full project report is available [here](https://github.com/omer6nahum/SepsisPred
 git clone https://github.com/omer6nahum/SepsisPrediction.git
 cd SepsisPrediction
 conda env create -f environment.yml
-conda activate sepsis_pred
+conda activate hw1_env
 python predict.py directory_name
 ```
 
