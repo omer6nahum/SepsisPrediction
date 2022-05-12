@@ -1,4 +1,4 @@
-name: sepsis_pred
+name: hw1_env
 channels:
   - defaults
 dependencies:
