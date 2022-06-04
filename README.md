@@ -22,4 +22,4 @@ conda activate hw1_env
 python predict.py directory_name
 ```
 
-Where `directory_name` should contain parient psv files.
+Where `directory_name` should contain patient psv files.
